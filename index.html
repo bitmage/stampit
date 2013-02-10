@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Stampit by dilvie</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Stampit</h1>
+        <p class="header">Create objects from reusable, composable behaviors.</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/dilvie/stampit/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/dilvie/stampit/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/dilvie/stampit">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/dilvie">dilvie</a></p>
+
+
+      </header>
+      <section>
+        <h1>Stampit</h1>
+
+<p>Create objects from reusable, composable behaviors.</p>
+
+<h2>Features</h2>
+
+<ul>
+<li><p>Create functions (called factories) which stamp out new objects. All of the new objects inherit all of the prescribed behavior.</p></li>
+<li><p>Compose factories together to create new factories.</p></li>
+<li><p>Inherit methods and default state.</p></li>
+<li><p>Supports composable private state and privileged methods.</p></li>
+<li><p>State is cloned for each instance, so it won't be accidentally shared.</p></li>
+<li>
+<p>For the curious - it's great for learning about prototypal OO. It mixes three major types of prototypes:</p>
+
+<ol>
+<li>differential inheritance, aka delegation (for methods),</li>
+<li>cloning, aka concatenation/exemplar prototypes (for state),</li>
+<li>functional / closure prototypes (for privacy / encapsulation)</li>
+</ol>
+</li>
+</ul><h2>What's the Point?</h2>
+
+<p>Prototypal OO is great, and JavaScript's capabilities give us some really powerful tools to explore it, but it could be easier to use.</p>
+
+<p>Basic questions like "how do I inherit privileged methods and private data?" and "what are some good alternatives to inheritance hierarchies?" are stumpers for many JavaScript users.</p>
+
+<p>Let's answer both of these questions at the same time. First, we'll use a closure to create data privacy:</p>
+
+<pre><code>var a = stampit().enclose(function () {
+  var a = 'a';
+  this.getA = function () {
+    return a;
+  };
+});
+</code></pre>
+
+<p>It uses function scope to encapsulate private data. Note that the getter must be defined inside the function in order to access the closure variables.</p>
+
+<p>Let's see if that worked:</p>
+
+<pre><code>a(); // Object -- so far so good.
+a().getA(); // "a"
+</code></pre>
+
+<p>Yes. Got it. In both of these instances, we actually created a brand new object, and then immediately threw it away, because we didn't assign it to anything. Don't worry about that.</p>
+
+<p>Here's another:</p>
+
+<pre><code>var b = stampit().enclose(function () {
+  var a = 'b';
+  this.getB = function () {
+    return a;
+  };
+});
+</code></pre>
+
+<p>Those <code>a</code>'s are not a typo. The point is to demonstrate that <code>a</code> and <code>b</code>'s private variables won't clash.</p>
+
+<p>But here's the real treat:</p>
+
+<pre><code>var c = stampit.compose(a, b);
+
+var foo = c(); // we won't throw this one away...
+
+foo.getA(); // "a"
+foo.getB(); // "b"
+</code></pre>
+
+<p>WAT? Yeah. You just inherited privileged methods and private data from two sources at the same time.</p>
+
+<p>But that's boring. Let's see what else is on tap:</p>
+
+<pre><code>// Some more privileged methods, with some private data.
+// Use stampit.extend() to make this feel declarative:
+var availability = stampit({}, {}, function () {
+  var isOpen = false; // private
+
+  reSurn stampit.extend(this, {
+    open: function open() {
+      isOpen = true;
+      return this;
+    },
+    close: function close() {
+      isOpen = false;
+      return this;
+    },
+    isOpen: function isOpenMethod() {
+      return isOpen;
+    }
+  });
+});
+
+// Here's a mixin with public methods, and some state:
+var membership = stampit({
+    add: function (member) {
+      this.members[member.name] = member;
+      return this;
+    },
+    getMember: function (name) {
+      return this.members[name];
+    }
+  },
+  {
+    members: {}
+  });
+
+// Let's set some defaults: 
+var defaults = stampit({}, {
+        name: 'The Saloon',
+        specials: 'Whisky, Gin, Tequila'
+      });
+
+// Classical inheritance has nothing on this. No parent/child coupling. No deep inheritance hierarchies.
+// Just good, clean code reusability.
+var bar = stampit.compose(defaults, availability, membership);
+
+// Note that you can override state on instantiation:
+var myBar = bar({name: 'Moe\'s'});
+
+// Silly, but proves that everything is as it should be.
+myBar.add({name: 'Homer' }).open().getMember('Homer'); 
+</code></pre>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
